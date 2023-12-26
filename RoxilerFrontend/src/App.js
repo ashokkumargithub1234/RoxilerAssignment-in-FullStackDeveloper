@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { TailSpin } from "react-loader-spinner";
-import Transactions from "./components/Transactions";
-import Statistics from "./components/Statistics";
-import BarChartComponent from "./components/BarChart";
-import PieChartComponent from "./components/PieChart";
+import Transactions from "./Components/Transactions";
+import Statistics from "./Components/Statistics";
+import BarChartComponent from "./Components/BarChart";
+import PieChartComponent from "./Components/PieChart";
 import "./App.css";
 
 const apiStatusConstants = {

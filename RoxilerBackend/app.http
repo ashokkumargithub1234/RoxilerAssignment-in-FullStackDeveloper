@@ -1,35 +1,12 @@
-POST http://localhost:3000/add-roxiler-data/
-Content-Type: application/json
-
-{       
-       "id": 60,
-        "title": "DANVOUY Womens T Shirt Casual Cotton Short",
-        "price": 412.99,
-        "description": "95Cotton5Spandex Features Casual Short Sleeve Letter PrintVNeckFashion Tees The fabric is soft and has some stretch. Occasion CasualOfficeBeachSchoolHomeStreet. Season SpringSummerAutumnWinter.",
-        "category": "women's clothing",
-        "image": "https://fakestoreapi.com/img/61pHAEJ4NML._AC_UX679_.jpg",
-        "sold": true,
-        "dateOfSale": "2021-09-27T20:29:54+05:30"
-}
-
-###
-GET http://localhost:3000/add-roxiler-data/8/
-
-###
-GET http://localhost:3000/api/transactions?searchText=32&page=0&perPage=10
-
+GET http://localhost:3000/transactions?searchText=798&selectedMonth=03
 ###
 
-GET http://localhost:3000/api/statistics?selectedMonth=09
+GET http://localhost:3000/statistics?selectedMonth=09
 ###
 
-GET http://localhost:3000/api/bar-chart?selectedMonth=12
+GET http://localhost:3000/bar-chart?selectedMonth=11
 ###
 
-GET http://localhost:3000/api/combined-data?searchText&page=0&perPage=10&selectedMonth=05
-
-###
-GET http://localhost:3000/transactions?s_query=412.99
+GET http://localhost:3000/combined-data?searchText&page=0&perPage=10&selectedMonth=05
 ###
 
-GET http://localhost:3000/initialize-database
