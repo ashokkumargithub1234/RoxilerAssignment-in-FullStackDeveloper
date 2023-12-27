@@ -36,7 +36,7 @@ const createTable = async () => {
     CREATE TABLE  IF NOT EXISTS ProductData(
         id INTEGER ,
         title TEXT,
-        price INTEGER,
+        price NUMERIC(10,2),
         description TEXT,
         category TEXT,
         image TEXT,
@@ -70,7 +70,13 @@ app.get("/initialize-database", async (req, res) => {
   res.send({ msg: "Initialize database successfuly" });
 });
 
-const getAllTransactions = async (page, perPage, searchText, selectedMonth) => {
+const getAllTransactions = async (
+  page,
+  perPage,
+  searchText,
+  selectedMonth,
+  price
+) => {
   // console.log(selectedMonth);
   const monthValue = format(new Date(selectedMonth), "MM");
   // console.log(monthValue);
@@ -80,10 +86,9 @@ const getAllTransactions = async (page, perPage, searchText, selectedMonth) => {
     FROM
       ProductData
     WHERE
-      (title LIKE '%${searchText}%' OR description LIKE '%${searchText}%' OR price LIKE '%${searchText}%')
+      (title LIKE '%${searchText}%' OR description LIKE '%${searchText}%' OR price LIKE CAST(${price} AS DECIMAL))
       AND dateOfSale LIKE '%-${monthValue}-%' 
-      LIMIT ${perPage} 
-      `;
+      LIMIT ${perPage} OFFSET ${page}`;
 
   const totalSearchedItems = `
      SELECT
@@ -91,9 +96,8 @@ const getAllTransactions = async (page, perPage, searchText, selectedMonth) => {
     FROM
       ProductData
     WHERE
-      (title LIKE '%${searchText}%' OR description LIKE '%${searchText}%' OR price LIKE '%${searchText}%')
-      AND dateOfSale LIKE '%-${monthValue}-%' 
-      `;
+      (title LIKE '%${searchText}%' OR description LIKE '%${searchText}%' OR price LIKE CAST(${price} AS DECIMAL))
+      AND dateOfSale LIKE '%-${monthValue}-%' `;
 
   const data = await database.all(getTodoQuery);
   const totalItems = await database.get(totalSearchedItems);
@@ -142,7 +146,7 @@ const getBarChartData = async (selectedMonth) => {
 
   requestQuery = `
         SELECT 
-            COUNT() AS items_in0To100_price
+            COUNT() AS price_0_To_100_items
         FROM 
         ProductData 
             WHERE 
@@ -152,7 +156,7 @@ const getBarChartData = async (selectedMonth) => {
 
   requestQuery = `
         SELECT 
-        COUNT() AS items_in101To200_price
+        COUNT() AS price_101_To_200_items
         FROM 
         ProductData 
         WHERE 
@@ -162,7 +166,7 @@ const getBarChartData = async (selectedMonth) => {
 
   requestQuery = `
         SELECT 
-            COUNT() AS items_in201To300_price
+            COUNT() AS price_201_To_300_items
         FROM 
         ProductData 
         WHERE 
@@ -172,7 +176,7 @@ const getBarChartData = async (selectedMonth) => {
 
   requestQuery = `
         SELECT 
-            COUNT() AS items_in301To400_price
+            COUNT() AS price_301_To_400_items
         FROM 
         ProductData 
         WHERE dateOfSale LIKE '%-${monthValue}-%' and price BETWEEN 301 AND 400;`;
@@ -181,7 +185,7 @@ const getBarChartData = async (selectedMonth) => {
 
   requestQuery = `
         SELECT 
-            COUNT() AS items_in401To500_price
+            COUNT() AS price_401_To_500_items
         FROM 
         ProductData 
         WHERE dateOfSale LIKE '%-${monthValue}-%' and price BETWEEN 401 AND 500;`;
@@ -190,7 +194,7 @@ const getBarChartData = async (selectedMonth) => {
 
   requestQuery = `
         SELECT 
-            COUNT() AS items_in501To600_price
+            COUNT() AS price_501_To_600_items
         FROM 
         ProductData 
         WHERE dateOfSale LIKE '%-${monthValue}-%' and price BETWEEN 501 AND 600;`;
@@ -199,7 +203,7 @@ const getBarChartData = async (selectedMonth) => {
 
   requestQuery = `
         SELECT 
-            COUNT() AS items_in601To700_price
+            COUNT() AS price_601_To_700_items
         FROM 
         ProductData 
         WHERE dateOfSale LIKE '%-${monthValue}-%' and price BETWEEN 601 AND 700;`;
@@ -208,7 +212,7 @@ const getBarChartData = async (selectedMonth) => {
 
   requestQuery = `
         SELECT 
-            COUNT() AS items_in701To800_price
+            COUNT() AS price_701_To_800_items
         FROM 
         ProductData 
         WHERE dateOfSale LIKE '%-${monthValue}-%' and price BETWEEN 701 AND 800;`;
@@ -217,7 +221,7 @@ const getBarChartData = async (selectedMonth) => {
 
   requestQuery = `
         SELECT 
-            COUNT() AS items_in801To900_price
+            COUNT() AS price_801_To_900_items
         FROM 
         ProductData 
         WHERE dateOfSale LIKE '%-${monthValue}-%' and price BETWEEN 801 AND 900;`;
@@ -226,7 +230,7 @@ const getBarChartData = async (selectedMonth) => {
 
   requestQuery = `
         SELECT 
-            COUNT() AS items_in901Toabove_price
+            COUNT() AS price_901_To_abovePrice_items
         FROM 
         ProductData 
         WHERE 
@@ -239,6 +243,7 @@ const getBarChartData = async (selectedMonth) => {
 app.get("/transactions", async (request, response) => {
   const {
     searchText = "",
+    price = 284.99,
     page = 1,
     perPage = 10,
     selectedMonth = "",
@@ -247,7 +252,8 @@ app.get("/transactions", async (request, response) => {
     page,
     perPage,
     searchText,
-    selectedMonth
+    selectedMonth,
+    price
   );
   response.send(transactions);
 });
