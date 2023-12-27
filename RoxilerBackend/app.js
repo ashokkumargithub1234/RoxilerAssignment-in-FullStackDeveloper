@@ -36,7 +36,7 @@ const createTable = async () => {
     CREATE TABLE  IF NOT EXISTS ProductData(
         id INTEGER ,
         title TEXT,
-        price NUMERIC(10,2),
+        price TEXT,
         description TEXT,
         category TEXT,
         image TEXT,
@@ -47,10 +47,10 @@ const createTable = async () => {
   await database.run(createQuery);
 };
 
-app.get("/initialize-database", async (req, res) => {
+const getInitializedDatabase = async () => {
   const url = "https://s3.amazonaws.com/roxiler.com/product_transaction.json";
-  const response = await axios.get(url);
-  const transactionData = await response.data;
+  const responseData = await axios.get(url);
+  const transactionData = await responseData.data;
   for (const productData of transactionData) {
     const insertQuery = `INSERT INTO ProductData(id,title,price,description,category,image,sold,dateOfSale)
         VALUES(?,?,?,?,?,?,?,?);`;
@@ -67,41 +67,41 @@ app.get("/initialize-database", async (req, res) => {
     ]);
   }
 
-  res.send({ msg: "Initialize database successfuly" });
+  return { msg: "Initialize database successfuly" };
+};
+
+app.get("/initialize-database", async (request, response) => {
+  const initializedDatabase = await getInitializedDatabase();
+  response.send(initializedDatabase);
 });
 
-const getAllTransactions = async (
-  page,
-  perPage,
-  searchText,
-  selectedMonth,
-  price
-) => {
+const getAllTransactions = async (limit, offset, searchText, selectedMonth) => {
   // console.log(selectedMonth);
   const monthValue = format(new Date(selectedMonth), "MM");
-  // console.log(monthValue);
+
   const getTodoQuery = `
-    SELECT
+     SELECT
       *
     FROM
       ProductData
     WHERE
-      (title LIKE '%${searchText}%' OR description LIKE '%${searchText}%' OR price LIKE CAST(${price} AS DECIMAL))
-      AND dateOfSale LIKE '%-${monthValue}-%' 
-      LIMIT ${perPage} OFFSET ${page}`;
+      (title LIKE '%${searchText}%' OR description LIKE '%${searchText}%' OR price LIKE '%${searchText}%')
+      AND dateOfSale LIKE '%-${monthValue}-%'
+      
+      `;
 
   const totalSearchedItems = `
      SELECT
-      COUNT(id) AS TOTAL
+      count(id) as total
     FROM
       ProductData
     WHERE
-      (title LIKE '%${searchText}%' OR description LIKE '%${searchText}%' OR price LIKE CAST(${price} AS DECIMAL))
-      AND dateOfSale LIKE '%-${monthValue}-%' `;
-
-  const data = await database.all(getTodoQuery);
+      (title LIKE '%${searchText}%' OR description LIKE '%${searchText}%' OR price LIKE '%${searchText}%')
+      AND dateOfSale LIKE '%-${monthValue}-%' 
+      `;
+  const todoQuery = await database.all(getTodoQuery);
   const totalItems = await database.get(totalSearchedItems);
-  return { transactionsData: data, totalItems };
+  return { transactionsData: todoQuery, totalItems };
 };
 
 const getStatistics = async (selectedMonth) => {
@@ -139,121 +139,63 @@ const getStatistics = async (selectedMonth) => {
 };
 
 const getBarChartData = async (selectedMonth) => {
-  let barChartData = [];
-  let requestQuery = "";
-  let reponseResult = null;
   const monthValue = format(new Date(selectedMonth), "MM");
+  const barChartData = [];
 
-  requestQuery = `
-        SELECT 
-            COUNT() AS price_0_To_100_items
+  const priceRange = [
+    { min: 0, max: 100 },
+    { min: 101, max: 200 },
+    { min: 201, max: 300 },
+    { min: 301, max: 400 },
+    { min: 401, max: 500 },
+    { min: 501, max: 600 },
+    { min: 601, max: 700 },
+    { min: 701, max: 800 },
+    { min: 801, max: 900 },
+    { min: 901, max: 10000 },
+  ];
+
+  for (let range of priceRange) {
+    const total = await database.get(`SELECT 
+            COUNT() AS count
         FROM 
         ProductData 
             WHERE 
-        dateOfSale LIKE '%-${monthValue}-%' and price BETWEEN 0 AND 100;`;
-  responseResult = await database.all(requestQuery);
-  barChartData.push(responseResult);
+        dateOfSale LIKE '%-${monthValue}-%' and price BETWEEN ${range.min} AND ${range.max};`);
 
-  requestQuery = `
-        SELECT 
-        COUNT() AS price_101_To_200_items
-        FROM 
-        ProductData 
-        WHERE 
-        dateOfSale LIKE '%-${monthValue}-%' and price BETWEEN 101 AND 200;`;
-  responseResult = await database.all(requestQuery);
-  barChartData.push(responseResult);
+    barChartData.push({
+      priceRange: `${range.min}-${range.max}`,
+      totalItems: total.count,
+    });
+  }
 
-  requestQuery = `
-        SELECT 
-            COUNT() AS price_201_To_300_items
-        FROM 
-        ProductData 
-        WHERE 
-        dateOfSale LIKE '%-${monthValue}-%' and price BETWEEN 201 AND 300;`;
-  responseResult = await database.all(requestQuery);
-  barChartData.push(responseResult);
+  return barChartData;
+};
 
-  requestQuery = `
-        SELECT 
-            COUNT() AS price_301_To_400_items
-        FROM 
-        ProductData 
-        WHERE dateOfSale LIKE '%-${monthValue}-%' and price BETWEEN 301 AND 400;`;
-  responseResult = await database.all(requestQuery);
-  barChartData.push(responseResult);
-
-  requestQuery = `
-        SELECT 
-            COUNT() AS price_401_To_500_items
-        FROM 
-        ProductData 
-        WHERE dateOfSale LIKE '%-${monthValue}-%' and price BETWEEN 401 AND 500;`;
-  responseResult = await database.all(requestQuery);
-  barChartData.push(responseResult);
-
-  requestQuery = `
-        SELECT 
-            COUNT() AS price_501_To_600_items
-        FROM 
-        ProductData 
-        WHERE dateOfSale LIKE '%-${monthValue}-%' and price BETWEEN 501 AND 600;`;
-  responseResult = await database.all(requestQuery);
-  barChartData.push(responseResult);
-
-  requestQuery = `
-        SELECT 
-            COUNT() AS price_601_To_700_items
-        FROM 
-        ProductData 
-        WHERE dateOfSale LIKE '%-${monthValue}-%' and price BETWEEN 601 AND 700;`;
-  responseResult = await database.all(requestQuery);
-  barChartData.push(responseResult);
-
-  requestQuery = `
-        SELECT 
-            COUNT() AS price_701_To_800_items
-        FROM 
-        ProductData 
-        WHERE dateOfSale LIKE '%-${monthValue}-%' and price BETWEEN 701 AND 800;`;
-  responseResult = await database.all(requestQuery);
-  barChartData.push(responseResult);
-
-  requestQuery = `
-        SELECT 
-            COUNT() AS price_801_To_900_items
-        FROM 
-        ProductData 
-        WHERE dateOfSale LIKE '%-${monthValue}-%' and price BETWEEN 801 AND 900;`;
-  responseResult = await database.all(requestQuery);
-  barChartData.push(responseResult);
-
-  requestQuery = `
-        SELECT 
-            COUNT() AS price_901_To_abovePrice_items
-        FROM 
-        ProductData 
-        WHERE 
-        dateOfSale LIKE '%-${monthValue}-%' and price >= 901;`;
-  responseResult = await database.all(requestQuery);
-  barChartData.push(responseResult);
-  return barChartData.flat();
+const getPieChartData = async (selectedMonth) => {
+  const monthValue = format(new Date(selectedMonth), "MM");
+  const pieChartData = await database.all(`
+    SELECT 
+    category,count(id) as items 
+    FROM ProductData 
+    WHERE dateOfSale LIKE '%-${monthValue}-%' 
+    GROUP BY category;
+  `);
+  return pieChartData;
 };
 
 app.get("/transactions", async (request, response) => {
   const {
     searchText = "",
-    price = 284.99,
-    page = 1,
-    perPage = 10,
     selectedMonth = "",
+    limit = 10,
+    offset = 1,
   } = request.query;
   const transactions = await getAllTransactions(
-    page,
-    perPage,
     searchText,
     selectedMonth,
-    price
+    limit,
+    offset
   );
   response.send(transactions);
 });
@@ -270,24 +212,73 @@ app.get("/bar-chart", async (request, response) => {
   response.send(barChartData);
 });
 
+app.get("/pie-chart", async (request, response) => {
+  const { selectedMonth } = request.query;
+  const pieChartData = await getPieChartData(selectedMonth);
+  response.send(pieChartData);
+});
+
 app.get("/combined-data", async (request, response) => {
   const {
-    page = 1,
-    perPage = 10,
     searchText = "",
     selectedMonth = "",
+    limit = 10,
+    offset = 1,
   } = request.query;
   const combinedData = {
+    initializeDatabase: await getInitializedDatabase(),
     transactions: await getAllTransactions(
-      page,
-      perPage,
       searchText,
-      selectedMonth
+      selectedMonth,
+      limit,
+      offset
     ),
     statistics: await getStatistics(selectedMonth),
     barChartData: await getBarChartData(selectedMonth),
+    pieChartData: await getPieChartData(selectedMonth),
   };
   response.send(combinedData);
 });
 
+/*
+app.get("/combined-data", async (req, res) => {
+  const {
+    selectedMonth = "",
+    searchText = "",
+    limit = 10,
+    offset = 0,
+  } = req.query;
+
+  const initializeDatabase = await axios.get(
+    `https://roxiler-systems-assignment.onrender.com/initialize-database`
+  );
+  const initializeResponse = await initializeDatabase.data;
+  const TransactionsData = await axios.get(
+    `https://roxiler-systems-assignment.onrender.com/transactions?month=${selectedMonth}&searchText=${searchText}&limit=${limit}&offset=${offset}`
+  );
+  const TransactionsResponse = await TransactionsData.data;
+  const statisticsData = await axios.get(
+    `https://roxiler-systems-assignment.onrender.com/statistics?month=${selectedMonth}`
+  );
+  const statisticsResponse = await statisticsData.data;
+  const barChartResponse = await axios.get(
+    `https://roxiler-systems-assignment.onrender.com/bar-chart?month=${selectedMonth}`
+  );
+  const barChartData = await barChartResponse.data;
+  const pieChartResponse = await axios.get(
+    `https://roxiler-systems-assignment.onrender.com/pie-chart?month=${selectedMonth}`
+  );
+  const pieChartData = await pieChartResponse.data;
+
+  const combinedResponse = {
+    initialize: initializeResponse,
+    listTransactions: TransactionsResponse,
+    statistics: statisticsResponse,
+    barChart: barChartData,
+    pieChart: pieChartData,
+  };
+
+  res.json(combinedResponse);
+});
+*/
 module.exports = app;

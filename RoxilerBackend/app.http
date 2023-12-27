@@ -1,4 +1,4 @@
-GET http://localhost:3000/transactions?selectedMonth=01
+GET http://localhost:3000/transactions?selectedMonth=03&searchText=3
 ###
 
 GET http://localhost:3000/statistics?selectedMonth=09
@@ -7,9 +7,13 @@ GET http://localhost:3000/statistics?selectedMonth=09
 GET http://localhost:3000/bar-chart?selectedMonth=11
 ###
 
+GET http://localhost:3000/pie-chart?selectedMonth=12
+###
+
 GET http://localhost:3000/combined-data?searchText&page=0&perPage=10&selectedMonth=05
 ###
 
 // DONT DO INITIALIZE DATABASE ALREADY INITIALISED IN CASE DID IT WILL GIVE DUPLICATE VALUES
 
 ###
+
