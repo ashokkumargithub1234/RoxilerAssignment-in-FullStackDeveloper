@@ -35,7 +35,7 @@ class App extends Component {
     this.getProductTransactionData();
   }
   getProductTransactionData = async () => {
-    const url = `http://localhost:3000/transactions`;
+    const url = `/combined-data?searchText&page=0&perPage=10&selectedMonth=05`;
     const response = await fetch(url);
     console.log(response);
   };
