@@ -240,45 +240,4 @@ app.get("/combined-data", async (request, response) => {
   response.send(combinedData);
 });
 
-/*
-app.get("/combined-data", async (req, res) => {
-  const {
-    selectedMonth = "",
-    searchText = "",
-    limit = 10,
-    offset = 0,
-  } = req.query;
-
-  const initializeDatabase = await axios.get(
-    `https://roxiler-systems-assignment.onrender.com/initialize-database`
-  );
-  const initializeResponse = await initializeDatabase.data;
-  const TransactionsData = await axios.get(
-    `https://roxiler-systems-assignment.onrender.com/transactions?month=${selectedMonth}&searchText=${searchText}&limit=${limit}&offset=${offset}`
-  );
-  const TransactionsResponse = await TransactionsData.data;
-  const statisticsData = await axios.get(
-    `https://roxiler-systems-assignment.onrender.com/statistics?month=${selectedMonth}`
-  );
-  const statisticsResponse = await statisticsData.data;
-  const barChartResponse = await axios.get(
-    `https://roxiler-systems-assignment.onrender.com/bar-chart?month=${selectedMonth}`
-  );
-  const barChartData = await barChartResponse.data;
-  const pieChartResponse = await axios.get(
-    `https://roxiler-systems-assignment.onrender.com/pie-chart?month=${selectedMonth}`
-  );
-  const pieChartData = await pieChartResponse.data;
-
-  const combinedResponse = {
-    initialize: initializeResponse,
-    listTransactions: TransactionsResponse,
-    statistics: statisticsResponse,
-    barChart: barChartData,
-    pieChart: pieChartData,
-  };
-
-  res.json(combinedResponse);
-});
-*/
 module.exports = app;
