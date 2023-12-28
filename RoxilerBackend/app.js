@@ -87,7 +87,7 @@ const getAllTransactions = async (limit, offset, searchText, selectedMonth) => {
     WHERE
       (title LIKE '%${searchText}%' OR description LIKE '%${searchText}%' OR price LIKE '%${searchText}%')
       AND dateOfSale LIKE '%-${monthValue}-%'
-      
+      LIMIT ${limit} OFFSET ${offset}
       `;
 
   const totalSearchedItems = `
